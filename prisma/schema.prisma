@@ -1,0 +1,76 @@
+// Placement Prep Tracker — see CLAUDE.md for the rules that govern this model.
+// Rule #1: every query is scoped to the session user's id. Rounds are scoped
+// through their parent Application's userId.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+// Prisma 7: the connection URL lives in prisma.config.ts for the CLI, and
+// reaches the client through the pg driver adapter in src/lib/prisma.ts.
+datasource db {
+  provider = "postgresql"
+}
+
+enum ApplicationStatus {
+  SAVED
+  APPLIED
+  ONLINE_ASSESSMENT
+  INTERVIEWING
+  OFFER
+  REJECTED
+  WITHDRAWN
+}
+
+enum RoundOutcome {
+  PENDING
+  PASSED
+  FAILED
+  CANCELLED
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String?
+  email        String        @unique
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  applications Application[]
+}
+
+model Application {
+  id          String            @id @default(cuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company     String
+  role        String
+  location    String?
+  jobUrl      String?
+  salary      String?
+  source      String?
+  status      ApplicationStatus @default(APPLIED)
+  appliedDate DateTime
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  rounds      Round[]
+
+  @@index([userId, status])
+  @@index([userId, appliedDate])
+}
+
+model Round {
+  id            String       @id @default(cuid())
+  applicationId String
+  application   Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  type          String
+  scheduledAt   DateTime?
+  outcome       RoundOutcome @default(PENDING)
+  interviewer   String?
+  notes         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([applicationId])
+}

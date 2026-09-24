@@ -1,0 +1,50 @@
+{
+  "name": "place",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "postinstall": "prisma generate",
+    "auth:secret": "node scripts/set-auth-secret.mjs",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio",
+    "db:apply": "node scripts/migrate-ws.mjs",
+    "db:status": "node scripts/migrate-ws.mjs --status",
+    "test:scope": "tsx --env-file=.env.local scripts/scope-test.ts",
+    "test:rounds": "tsx --env-file=.env.local scripts/rounds-test.ts",
+    "test:analytics": "tsx --env-file=.env.local scripts/analytics-test.ts"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
+    "@prisma/adapter-neon": "^7.10.0",
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^18.0.3",
+    "next": "15.5.26",
+    "next-auth": "^5.0.0-beta.32",
+    "pg": "^8.23.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "ws": "^8.21.3"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/ws": "^8.18.1",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.26",
+    "prisma": "^7.10.0",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  }
+}
