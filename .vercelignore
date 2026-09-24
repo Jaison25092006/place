@@ -1,0 +1,16 @@
+# Nothing secret ever leaves this machine in a CLI deploy.
+# Real values live in .env.local; production values are set in the Vercel
+# project's own environment variables, never uploaded from here.
+.env
+.env.*
+!.env.example
+
+# Local-only working files.
+CLAUDE.md
+BUILD_PROMPTS.md
+scripts/*-test.ts
+
+# Build output and deps — Vercel builds these itself.
+.next
+node_modules
+src/generated

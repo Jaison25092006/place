@@ -72,7 +72,15 @@ function discoverMigrations() {
 async function main() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
-    console.error("DATABASE_URL is not set. Put it in .env.local.");
+    // Same failure, two very different fixes depending on where we are.
+    console.error(
+      process.env.VERCEL
+        ? "DATABASE_URL is not set for this Vercel environment.\n" +
+            "  Project → Settings → Environment Variables → add DATABASE_URL\n" +
+            "  (the Neon *pooled* string, host ending in -pooler), tick the\n" +
+            "  environment you are deploying, then redeploy."
+        : "DATABASE_URL is not set. Copy .env.example to .env.local and fill it in.",
+    );
     process.exit(1);
   }
 
