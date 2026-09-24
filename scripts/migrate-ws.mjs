@@ -73,14 +73,35 @@ async function main() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
     // Same failure, two very different fixes depending on where we are.
-    console.error(
-      process.env.VERCEL
-        ? "DATABASE_URL is not set for this Vercel environment.\n" +
-            "  Project → Settings → Environment Variables → add DATABASE_URL\n" +
-            "  (the Neon *pooled* string, host ending in -pooler), tick the\n" +
-            "  environment you are deploying, then redeploy."
-        : "DATABASE_URL is not set. Copy .env.example to .env.local and fill it in.",
-    );
+    if (process.env.VERCEL) {
+      // "Set in the dashboard" and "actually present in the build" are not the
+      // same thing — a blank value, or one scoped to another environment, both
+      // land here. List the keys that *are* present so the next failed build
+      // says which. Names only: never print a value, redacted or otherwise.
+      const present = Object.keys(process.env)
+        .filter((key) => /DATABASE|POSTGRES|PRISMA/i.test(key))
+        .sort();
+
+      console.error(
+        `DATABASE_URL is not usable in this Vercel build (VERCEL_ENV=${process.env.VERCEL_ENV ?? "?"}).`,
+      );
+      console.error(
+        "DATABASE_URL" in process.env
+          ? "  It exists but is empty — re-add it with a real value."
+          : "  It is not present in the build environment at all.",
+      );
+      console.error(
+        present.length
+          ? `  Database-ish keys that are present: ${present.join(", ")}`
+          : "  No database-related keys are present at all.",
+      );
+      console.error(
+        "  Fix: Settings → Environments → add DATABASE_URL (Neon *pooled*\n" +
+          "  string, host ending in -pooler) for this environment, then deploy.",
+      );
+    } else {
+      console.error("DATABASE_URL is not set. Copy .env.example to .env.local and fill it in.");
+    }
     process.exit(1);
   }
 
