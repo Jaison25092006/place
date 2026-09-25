@@ -105,13 +105,41 @@ async function main() {
     process.exit(1);
   }
 
+  // Pasting an env var into a dashboard field very often drags along the
+  // surrounding quotes, a stray newline, or the KEY= prefix. Forgive all three
+  // rather than failing a deploy over punctuation.
+  const cleaned = connectionString
+    .trim()
+    .replace(/^DATABASE_URL\s*=\s*/, "")
+    .replace(/^(['"])([\s\S]*)\1$/, "$2")
+    .trim();
+
+  // Validate here, where we can say what is wrong. The driver's bare
+  // "Invalid URL" names neither the variable nor the problem.
+  try {
+    const url = new URL(cleaned);
+    if (!/^postgres(ql)?:$/.test(url.protocol)) {
+      throw new Error(`protocol is "${url.protocol}", expected postgresql:`);
+    }
+  } catch (error) {
+    // Shape only — the password sits in the middle and is never printed.
+    console.error("DATABASE_URL is set but is not a valid Postgres URL.");
+    console.error(`  reason:      ${error.message}`);
+    console.error(`  length:      ${cleaned.length} chars (expected roughly 100-200)`);
+    console.error(`  starts with: ${JSON.stringify(cleaned.slice(0, 16))}`);
+    console.error(`  ends with:   ${JSON.stringify(cleaned.slice(-12))}`);
+    console.error("  Expected to start with postgresql:// and end with sslmode=require.");
+    console.error("  If the start shows a quote or DATABASE_URL=, the paste included them.");
+    process.exit(1);
+  }
+
   const migrations = discoverMigrations();
   if (migrations.length === 0) {
     console.log("No migrations found in prisma/migrations.");
     return;
   }
 
-  const client = new Client({ connectionString });
+  const client = new Client({ connectionString: cleaned });
   await client.connect();
 
   try {
